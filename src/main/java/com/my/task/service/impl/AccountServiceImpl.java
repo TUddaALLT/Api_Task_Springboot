@@ -74,7 +74,7 @@ public class AccountServiceImpl implements AccountService {
 
         @Override
         public ResponseEntity<ResponseObject> updateAccount(String token) {
-                // TODO Auto-generated method stub
+
                 Account acc = jwtTokenUtil.getAccountLogin(token);
 
                 acc = accountRepository.save(acc);

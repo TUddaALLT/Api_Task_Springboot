@@ -28,6 +28,8 @@ public class WebSecurityConfig {
         http.csrf().disable().authorizeRequests()
                 // .antMatchers("/*").permitAll()
                 .antMatchers("/task").authenticated()
+                // authorization
+                // .antMatchers("/tasks").hasAnyAuthority("xxx")
                 .and().sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         http.addFilterBefore(jwtRequestFilter,

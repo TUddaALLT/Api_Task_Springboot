@@ -1,7 +1,6 @@
 package com.my.task.service.impl;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -13,7 +12,6 @@ import org.springframework.stereotype.Service;
 import com.my.task.entity.Account;
 import com.my.task.entity.Task;
 import com.my.task.model.ResponseObject;
-import com.my.task.model.dto.AccountDTORequest;
 import com.my.task.model.dto.TaskDTOCreate;
 import com.my.task.repository.AccountRepository;
 import com.my.task.service.TaskService;
@@ -59,9 +57,11 @@ public class TaskServiceImpl implements TaskService {
         }
 
         @Override
-        public ResponseEntity<ResponseObject> getAllTask(AccountDTORequest username) {
+        public ResponseEntity<ResponseObject> getAllTask(HttpServletRequest request) {
 
-                Optional<Account> account = accountRepository.findByUsername(username.getUsername());
+                String token = request.getHeader("Authorization").substring(6);
+                Account acc = jwtTokenUtil.getAccountLogin(token);
+                Optional<Account> account = accountRepository.findByUsername(acc.getUsername());
                 if (account.isPresent()) {
                         Set<Task> tasks = account.get().getTasks();
                         return ResponseEntity.ok()
@@ -74,6 +74,34 @@ public class TaskServiceImpl implements TaskService {
                                 .body(ResponseObject.builder().status("404").message("failed").data(null)
                                                 .build());
 
+        }
+
+        @Override
+        public ResponseEntity<ResponseObject> deleteTask(HttpServletRequest request, int id) {
+
+                String token = request.getHeader("Authorization").substring(6);
+                Account acc = jwtTokenUtil.getAccountLogin(token);
+                Optional<Account> account = accountRepository.findByUsername(acc.getUsername());
+                if (account.isPresent()) {
+                        Set<Task> tasks = account.get().getTasks();
+                        for (Task task : tasks) {
+                                if (task.getId() == id) {
+                                        tasks.remove(task);
+                                        acc.setTasks(tasks);
+                                        acc = accountRepository.save(acc);
+                                        return ResponseEntity.ok()
+                                                        .body(ResponseObject.builder().status("500")
+                                                                        .message("delete successful")
+                                                                        .data(tasks.toString())
+                                                                        .build());
+                                }
+                        }
+
+                }
+
+                return ResponseEntity.ok()
+                                .body(ResponseObject.builder().status("404").message("delete failed").data(null)
+                                                .build());
         }
 
 }
